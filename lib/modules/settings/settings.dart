@@ -45,6 +45,12 @@ class SettingsScreen extends StatelessWidget {
                         fit: BoxFit.cover,
                         height: 150.0,
                         width: double.infinity,
+                        errorBuilder: (BuildContext context, Object exception,
+                            StackTrace? stackTrace) {
+                          return Container(
+                            height: 150.0,
+                          );
+                        },
                       ),
                     ),
                     Positioned(
@@ -216,7 +222,10 @@ class SettingsScreen extends StatelessWidget {
                       onPressed: () async {
                         await FirebaseMessaging.instance
                             .subscribeToTopic('announcements');
-                        print('subscribe done');
+                        showToast(
+                          text: 'subscribed successfully',
+                          state: ToastStates.SUCCESS,
+                        );
                       },
                       child: Text(
                         'subscribe',
@@ -240,7 +249,10 @@ class SettingsScreen extends StatelessWidget {
                       onPressed: () async {
                         await FirebaseMessaging.instance
                             .unsubscribeFromTopic('announcements');
-                        print('Unsubscribe done');
+                        showToast(
+                          text: 'unsubscribed successfully',
+                          state: ToastStates.SUCCESS,
+                        );
                       },
                       child: Text(
                         'unsubscribe',

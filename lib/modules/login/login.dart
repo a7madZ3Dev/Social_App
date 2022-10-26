@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:conditional_builder/conditional_builder.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
 import '../../shared/cubit/cubit.dart';
 import '../../shared/cubit/states.dart';
@@ -18,10 +18,10 @@ class LogInScreen extends StatelessWidget {
     AuthCubit authCubit = AuthCubit.get(context);
     return BlocConsumer<AuthCubit, AuthStates>(listener: (context, state) {
       if (state is LogInSuccessState) {
-        showToast(
-          text: 'LogIn successfully',
-          state: ToastStates.SUCCESS,
-        );
+        // showToast(
+        //   text: 'LogIn successfully',
+        //   state: ToastStates.SUCCESS,
+        // );
       }
     }, builder: (context, state) {
       return Scaffold(
@@ -57,6 +57,7 @@ class LogInScreen extends StatelessWidget {
                         if (value!.trim().isEmpty) {
                           return 'Email field must not be empty';
                         }
+                        return null;
                       },
                       label: 'Email Address',
                       prefix: Icons.email_outlined,
@@ -79,6 +80,7 @@ class LogInScreen extends StatelessWidget {
                           if (value!.trim().isEmpty) {
                             return 'Password field must not be empty';
                           }
+                          return null;
                         },
                         label: 'Password',
                         prefix: Icons.lock_open_outlined,
@@ -113,7 +115,7 @@ class LogInScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Don\'t have an account ?',
+                          'Don\'t have an account ? ',
                           style: Theme.of(context).textTheme.subtitle1,
                         ),
                         defaultTextButton(

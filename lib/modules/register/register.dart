@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:conditional_builder/conditional_builder.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
 import '../../shared/cubit/cubit.dart';
 import '../../modules/login/login.dart';
@@ -20,10 +20,10 @@ class RegisterScreen extends StatelessWidget {
     AuthCubit authCubit = AuthCubit.get(context);
     return BlocConsumer<AuthCubit, AuthStates>(listener: (context, state) {
       if (state is CreateUserSuccessState) {
-        showToast(
-          text: 'Registered successfully',
-          state: ToastStates.SUCCESS,
-        );
+        // showToast(
+        //   text: 'Registered successfully',
+        //   state: ToastStates.SUCCESS,
+        // );
       }
     }, builder: (context, state) {
       return Scaffold(

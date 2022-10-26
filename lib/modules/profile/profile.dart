@@ -7,7 +7,6 @@ import '../../shared/components/components.dart';
 import '../../shared/styles/styles/icon_broken.dart';
 
 class ProfileScreen extends StatelessWidget {
-  
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -23,12 +22,12 @@ class ProfileScreen extends StatelessWidget {
             leading: true,
             actions: false,
             automaticallyImplyLeading: false,
+            title: 'Edit Profile',
             onPressed: () {
               Navigator.of(context).pop();
               chatCubit.profileImage = null;
               chatCubit.coverImage = null;
             },
-            title: 'Edit Profile',
           ),
           body: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -58,18 +57,20 @@ class ProfileScreen extends StatelessWidget {
                             width: double.infinity,
                             clipBehavior: Clip.antiAliasWithSaveLayer,
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(5.0),
-                                  topRight: Radius.circular(5.0),
-                                ),
-                                image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: chatCubit.coverImage != null
-                                        ? FileImage(chatCubit.coverImage!)
-                                            as ImageProvider
-                                        : NetworkImage(
-                                            chatCubit.userFireBase!.cover!,
-                                          ))),
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(5.0),
+                                topRight: Radius.circular(5.0),
+                              ),
+                              image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: chatCubit.coverImage != null
+                                    ? FileImage(chatCubit.coverImage!)
+                                        as ImageProvider
+                                    : NetworkImage(
+                                        chatCubit.userFireBase!.cover!,
+                                      ),
+                              ),
+                            ),
                           ),
                           IconButton(
                             onPressed: () {
@@ -122,12 +123,12 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: defaultFormField(
                           type: TextInputType.text,
-                          
                           label: 'Name',
                           validate: (String? value) {
                             if (value!.trim().isEmpty) {
                               return 'Name field must not be empty';
                             }
+                            return null;
                           },
                           initialValue: chatCubit.userFireBase!.name,
                           prefix: IconBroken.Profile,
@@ -147,6 +148,7 @@ class ProfileScreen extends StatelessWidget {
                             if (value!.trim().isEmpty) {
                               return 'Phone field must not be empty';
                             }
+                            return null;
                           },
                           initialValue: chatCubit.userFireBase!.phone,
                           prefix: IconBroken.Call,
@@ -166,6 +168,7 @@ class ProfileScreen extends StatelessWidget {
                             if (value!.trim().isEmpty) {
                               return 'bio field must not be empty';
                             }
+                            return null;
                           },
                           initialValue: chatCubit.userFireBase!.bio,
                           textInputAction: TextInputAction.done,
@@ -173,7 +176,7 @@ class ProfileScreen extends StatelessWidget {
                           onSaved: (value) {
                             if (value != null) chatCubit.bio = value;
                           }),
-                    ),  
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8.0,

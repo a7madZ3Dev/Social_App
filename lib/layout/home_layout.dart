@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:conditional_builder/conditional_builder.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
 import '../shared/cubit/cubit.dart';
 import '../shared/cubit/states.dart';
@@ -16,16 +16,15 @@ import '../../modules/notifications/notifications.dart';
 class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    /// for know is keyboard is open or not to choise either build floatingButton or not
+    /// for know is keyboard is open or not to choice either build floatingButton or not
     bool keyboardIsOpened = MediaQuery.of(context).viewInsets.bottom != 0.0;
 
+    ChatCubit chatCubit = ChatCubit.get(context);
     return BlocConsumer<ChatCubit, ChatStates>(
       listener: (BuildContext context, ChatStates state) {},
       builder: (BuildContext context, ChatStates state) {
-        ChatCubit chatCubit = ChatCubit.get(context);
 
         /// when click on notification to open app
-        
         // FirebaseMessaging.onMessageOpenedApp.listen((event) {
         //   print('on message opened app');
         //   print(event.data.toString());
@@ -53,10 +52,11 @@ class Home extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () async {
-                  chatCubit.users.clear();
                   await FirebaseAuth.instance.signOut();
-                  navigateAndFinish(context, LogInScreen());
-                  CacheHelper.deleteData();
+                  chatCubit.users.clear();
+                  CacheHelper.deleteData().then((value) {
+                    if (value) navigateAndFinish(context, LogInScreen());
+                  });
                 },
                 icon: Icon(IconBroken.Logout),
               ),
@@ -78,25 +78,26 @@ class Home extends StatelessWidget {
           ),
           floatingActionButtonLocation:
               FloatingActionButtonLocation.miniCenterDocked,
-          floatingActionButton:
-              keyboardIsOpened || chatCubit.selectedPageIndex == 1 ? null : FloatingActionButton(
-                      heroTag: null,
-                      onPressed: () {
-                        navigateTo(context, NewPostScreen());
-                      },
-                      child: Icon(IconBroken.Plus),
-                      tooltip: 'add',
-                    ),
+          floatingActionButton: keyboardIsOpened ||
+                  chatCubit.selectedPageIndex == 1 ||
+                  chatCubit.selectedPageIndex == 2 ||
+                  chatCubit.selectedPageIndex == 3
+              ? null
+              : FloatingActionButton(
+                  heroTag: null,
+                  onPressed: () {
+                    navigateTo(context, NewPostScreen());
+                  },
+                  child: Icon(IconBroken.Plus),
+                  tooltip: 'add',
+                ),
         );
       },
     );
   }
 }
 
-
-
 /// for send message for verified
-
 // if (!FirebaseAuth.instance.currentUser!.emailVerified)
 //                     Container(
 //                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -125,7 +126,7 @@ class Home extends StatelessWidget {
 //                           ),
 //                           defaultTextButton(
 //                             onPressed: () async {
-//                               await FirebaseAuth.instance.currentUser
+//                                 FirebaseAuth.instance.currentUser
 //                                   ?.sendEmailVerification()
 //                                   .then((value) {
 //                                 showToast(

@@ -3,9 +3,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../shared/styles/styles/icon_broken.dart';
 
-/// defualt app Bar
+/// default app Bar
 PreferredSizeWidget appBar({
-  /// required BuildContext context,
+  // required BuildContext context,
   bool centerTitle = false,
   String title = 'New Post',
   bool leading = false,
@@ -136,7 +136,7 @@ Widget defaultTextButton({
       child: Text(
         isUpperCase ? label.toUpperCase() : label,
         style: TextStyle(
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w700,
           fontSize: fontSize,
         ),
       ),

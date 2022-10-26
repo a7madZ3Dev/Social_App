@@ -4,7 +4,7 @@ class Post {
   final String? postId;
   final String? name;
   final String? text;
-  final String? image;
+  final String? userImage;
   final String? postImage;
   final DateTime? dateTime;
 
@@ -13,7 +13,7 @@ class Post {
     this.postId,
     this.name,
     this.text,
-    this.image,
+    this.userImage,
     this.dateTime,
     this.postImage,
   });
@@ -24,7 +24,7 @@ class Post {
       uid: jsonData['uid'],
       name: jsonData['name'],
       text: jsonData['text'],
-      image: jsonData['image'],
+      userImage: jsonData['image'],
       dateTime: jsonData['dateTime'].toDate(),
       postImage: jsonData['postImage'],
     );
@@ -36,7 +36,7 @@ class Post {
       'name': name,
       'text': text,
       'postId': postId,
-      'image': image,
+      'image': userImage,
       'dateTime': dateTime,
       'postImage': postImage,
     };

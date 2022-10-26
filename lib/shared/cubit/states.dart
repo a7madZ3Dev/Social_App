@@ -40,9 +40,6 @@ class CreateUserErrorState extends AuthStates {
   });
 }
 
-
-
-
 /// all operations states
 abstract class ChatStates {}
 
@@ -66,6 +63,13 @@ class ChatGetAllUsersLoadingState extends ChatStates {}
 class ChatGetAllUsersSuccessState extends ChatStates {}
 
 class ChatGetAllUsersErrorState extends ChatStates {}
+
+/// for get all user data
+class ChatGetAllUserChatsLoadingState extends ChatStates {}
+
+class ChatGetAllUserChatsSuccessState extends ChatStates {}
+
+class ChatGetAllUserChatsErrorState extends ChatStates {}
 
 /// bottom navBar
 class ChatChangeBottomNavBarState extends ChatStates {}
@@ -110,9 +114,6 @@ class ChatNewCommentLoadingState extends ChatStates {}
 class ChatNewCommentSuccessState extends ChatStates {}
 
 class ChatNewCommentErrorState extends ChatStates {}
-
-
-
 
 /// class for theme mode
 abstract class AppStates {}

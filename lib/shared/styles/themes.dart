@@ -29,10 +29,9 @@ final ThemeData lightTheme = ThemeData(
         height: 1.3),
     caption: TextStyle(
       color: Colors.black54,
-    ),         
+    ),
   ),
   appBarTheme: AppBarTheme(
-    backwardsCompatibility: false,
     elevation: 0.0,
     centerTitle: true,
     backgroundColor: Colors.white,
@@ -65,9 +64,10 @@ final ThemeData darkTheme = ThemeData(
   primaryColorDark: Colors.blue,
   fontFamily: 'Jannah',
   textSelectionTheme: TextSelectionThemeData(cursorColor: Colors.blue),
-  floatingActionButtonTheme:
-      FloatingActionButtonThemeData(backgroundColor: Colors.blue,),
-  iconTheme: IconThemeData(color: Colors.white),    
+  floatingActionButtonTheme: FloatingActionButtonThemeData(
+    backgroundColor: Colors.blue,
+  ),
+  iconTheme: IconThemeData(color: Colors.white),
   cardColor: Colors.black,
   textTheme: TextTheme(
     headline6: TextStyle(
@@ -87,7 +87,6 @@ final ThemeData darkTheme = ThemeData(
     ),
   ),
   appBarTheme: AppBarTheme(
-    backwardsCompatibility: false,
     elevation: 0.0,
     centerTitle: true,
     color: Colors.black,

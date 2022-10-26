@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:conditional_builder/conditional_builder.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
 import '../../models/user/user.dart';
 import '../../shared/cubit/cubit.dart';
@@ -20,8 +20,8 @@ class ChatsScreen extends StatelessWidget {
 
           return ConditionalBuilder(
             condition:
-                chatCubit.users.length > 0 && chatCubit.userFireBase != null,
-            fallback: (context) => Center(child: CircularProgressIndicator()),
+                chatCubit.users.length > 0, // && chatCubit.userFireBase != null
+            fallback: (context) => Center(child: Text('No Chats yet!')),
             builder: (context) => ListView.separated(
               physics: BouncingScrollPhysics(),
               itemCount: chatCubit.users.length,

@@ -61,7 +61,8 @@ class ChatsDetailsScreen extends StatelessWidget {
                 2.0,
               ),
             ),
-            clipBehavior: Clip.antiAliasWithSaveLayer,
+            clipBehavior: Clip
+                .antiAliasWithSaveLayer, // for clip Material Button in the row
             child: Row(
               children: <Widget>[
                 Expanded(
@@ -86,10 +87,11 @@ class ChatsDetailsScreen extends StatelessWidget {
                       color: Colors.white,
                     ),
                     onPressed: () async {
-                      await databaseService.createChatWithUser(
-                          text: _controller.text,
-                          receiverUid: receiverUser!.uid!);
+                      var message = _controller.text;
                       _controller.clear();
+                      await databaseService.createChatWithUser(
+                          text: message,
+                          receiverUid: receiverUser!.uid!);
                     },
                   ),
                 )
@@ -139,22 +141,21 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  MessageBubble({this.message, this.isMe});
+  MessageBubble({required this.message, required this.isMe});
 
-  final Message? message;
-  final bool? isMe;
+  final Message message;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment:
-          isMe! ? MainAxisAlignment.end : MainAxisAlignment.start,
+      mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(8, 7, 8, 7),
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 7),
           child: Material(
             elevation: 5.2,
-            borderRadius: isMe!
+            borderRadius: isMe
                 ? BorderRadius.only(
                     topLeft: Radius.circular(30),
                     bottomLeft: Radius.circular(30),
@@ -165,13 +166,13 @@ class MessageBubble extends StatelessWidget {
                     bottomLeft: Radius.circular(30),
                     bottomRight: Radius.circular(30),
                   ),
-            color: isMe! ? Theme.of(context).primaryColor : Colors.grey[100],
+            color: isMe ? Theme.of(context).primaryColor : Colors.grey[100],
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 18),
               child: Text(
-                '${message!.text} ',
+                '${message.text} ',
                 style: TextStyle(
-                    fontSize: 16, color: isMe! ? Colors.white : Colors.black54),
+                    fontSize: 16, color: isMe ? Colors.white : Colors.black54),
               ),
             ),
           ),

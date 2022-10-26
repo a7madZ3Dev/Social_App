@@ -1,6 +1,5 @@
 import "dart:io";
 
-import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -46,15 +45,16 @@ class AuthCubit extends Cubit<AuthStates> {
       email: email,
       password: password,
     )
-        .then((value) async{
+        .then((value) async {
       if (value != null) {
         token = await FirebaseMessaging.instance.getToken();
         userId = value.user?.uid;
-        emit(LogInSuccessState());
-        CacheHelper.saveData(uid: userId);
-        navigateAndReplacement(context, Home());
         BlocProvider.of<ChatCubit>(context).getUser();
         BlocProvider.of<ChatCubit>(context).getAllPosts();
+        BlocProvider.of<ChatCubit>(context).getAllUsers();
+        emit(LogInSuccessState());
+        navigateAndReplacement(context, Home());
+        CacheHelper.saveData(uid: userId);
       }
     }).catchError((error) {
       emit(LogInErrorState(error: error.toString()));
@@ -80,10 +80,10 @@ class AuthCubit extends Cubit<AuthStates> {
 
   /// create user object
   Future<void> createUser({
-    @required String? name,
-    @required String? email,
-    @required String? phone,
-    @required String? uid,
+    required String? name,
+    required String? email,
+    required String? phone,
+    required String? uid,
     required BuildContext context,
   }) async {
     user = UserFireBase(
@@ -93,22 +93,19 @@ class AuthCubit extends Cubit<AuthStates> {
       uid: uid,
       isEmailVerified: false,
       bio: 'write your bio ..',
-      image:
-          'https://image.freepik.com/free-photo/cheerful-afro-american-female-blogger-posts-images-online-works-via-phone-laughs-funny-video-internet-has-fun-closes-eyes-wears-grey-jacket_273609-43339.jpg',
-      cover:
-          'https://image.freepik.com/free-photo/photo-attractive-bearded-young-man-with-cherful-expression-makes-okay-gesture-with-both-hands-likes-something-dressed-red-casual-t-shirt-poses-against-white-wall-gestures-indoor_273609-16239.jpg',
+      image: kDefaultUserImage,
+      cover: kDefaultUserCoverImage,
     );
 
     await FirebaseFirestore.instance
         .collection('users')
         .doc(uid)
         .set(user.toMap())
-        .then((value) {
-      BlocProvider.of<ChatCubit>(context).userFireBase = user;
+        .then((val) {
       BlocProvider.of<ChatCubit>(context).getAllPosts();
-      CacheHelper.saveData(uid: uid);
+      BlocProvider.of<ChatCubit>(context).getAllUsers();
+      BlocProvider.of<ChatCubit>(context).userFireBase = user;
       emit(CreateUserSuccessState());
-      // navigateAndReplacement(context, Home());
     }).catchError((error) {
       emit(CreateUserErrorState(error: error.toString()));
     });
@@ -127,19 +124,22 @@ class AuthCubit extends Cubit<AuthStates> {
       if (value != null) {
         userId = value.user?.uid;
         token = await FirebaseMessaging.instance.getToken();
-        await createUser(
-            name: name,
-            email: email,
-            phone: phone,
-            uid: value.user?.uid,
-            context: context);
-        navigateAndReplacement(context, Home());
+        createUser(
+                name: name,
+                email: email,
+                phone: phone,
+                uid: value.user?.uid,
+                context: context)
+            .then((_) {
+          navigateAndReplacement(context, Home());
+          CacheHelper.saveData(uid: userId);
+        });
       }
     }).catchError((error) {
       emit(RegisterErrorState(error: error.toString()));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.message, textAlign: TextAlign.center),
+          content: Text(error.message.toString(), textAlign: TextAlign.center),
           backgroundColor: Theme.of(context).primaryColor,
         ),
       );
@@ -166,10 +166,13 @@ class ChatCubit extends Cubit<ChatStates> {
 
   DatabaseService databaseService = DatabaseService();
   List<UserFireBase> users = [];
+  List<UserFireBase> userChats = [];
   UserFireBase? userFireBase;
   List<int> comments = [];
   List<Post> posts = [];
   List<int> likes = [];
+  List<Future<int>> likesFutures = [];
+  List<Future<int>> commentsFutures = [];
   File? profileImage;
   File? coverImage;
   File? postImage;
@@ -194,7 +197,6 @@ class ChatCubit extends Cubit<ChatStates> {
           default:
             print(' no part match ');
         }
-
         emit(ChatImagePickedSuccessState());
       }
     }).catchError((error) {
@@ -211,15 +213,18 @@ class ChatCubit extends Cubit<ChatStates> {
 
   /// reFormat data in UserFireBase
   UserFireBase userDataFromSnapshot(DocumentSnapshot snapshot) {
-    Map<String, dynamic>? data = snapshot.data()!;
+    Map<String, dynamic>? data = snapshot.data()! as Map<String, dynamic>;
     return UserFireBase.fromJson(data);
   }
 
   /// get user data
-  void getUser() {
+  void getUser() async {
     if (userId == null || userId == '') {
-      print('no user Id data');
-      return;
+      String val = await CacheHelper.getData();
+      if (val == '') {
+        print('Will not get user data because no user Id data');
+        return;
+      }
     } else {
       print('bring data now');
       emit(ChatGetUserLoadingState());
@@ -227,19 +232,19 @@ class ChatCubit extends Cubit<ChatStates> {
         userFireBase = userDataFromSnapshot(value);
         emit(ChatGetUserSuccessState());
       }).catchError((error) {
-        emit(ChatGetUserErrorState(error: error.toString()));
         print(error.toString());
+        emit(ChatGetUserErrorState(error: error.toString()));
       });
     }
   }
 
-  /// reFormat data in UserFireBase
+  /// reFormat data in list of UserFireBase
   List<UserFireBase> usersDataFromSnapshot(QuerySnapshot snapshot) {
     List<UserFireBase> users = [];
     snapshot.docs.forEach((user) {
-      Map<String, dynamic>? data = user.data();
+      Map<String, dynamic>? data = user.data() as Map<String, dynamic>;
 
-      /// firebase add space in the front of uid for user !!
+      /// just add other users
       if (data['uid'].toString().trim() != userId) {
         users.add(UserFireBase.fromJson(data));
       } else {
@@ -250,10 +255,13 @@ class ChatCubit extends Cubit<ChatStates> {
   }
 
   /// get all users data
-  void getAllUsers() {
+  void getAllUsers() async {
     if (userId == null || userId == '') {
-      print('no user Id found');
-      return;
+      String val = await CacheHelper.getData();
+      if (val == '') {
+        print('Will not get All Users data because no user Id found');
+        return;
+      }
     } else {
       print('bring all users data now');
       emit(ChatGetAllUsersLoadingState());
@@ -261,11 +269,37 @@ class ChatCubit extends Cubit<ChatStates> {
         users = usersDataFromSnapshot(value);
         emit(ChatGetAllUsersSuccessState());
       }).catchError((error) {
-        emit(ChatGetAllUsersErrorState());
         print(error.toString());
+        emit(ChatGetAllUsersErrorState());
       });
     }
   }
+
+  // /// reFormat data in list of User Fire Base
+  // List<UserFireBase> userChatsDataFromSnapshot(QuerySnapshot snapshot) {
+  //   List<UserFireBase> userChats = [];
+  //   if (users.isNotEmpty) {
+  //     snapshot.docs.forEach((element) {
+  //       UserFireBase chatUser =
+  //           users.firstWhere((user) => user.uid == element.id);
+  //       userChats.add(chatUser);
+  //     });
+  //   }
+  //   return userChats;
+  // }
+
+  // /// get all user chats
+  // void getUserChats() {
+  //   print('bring all chats data now');
+  //   emit(ChatGetAllUserChatsLoadingState());
+  //   databaseService.getAllUserChatsData().then((value) {
+  //     userChats = userChatsDataFromSnapshot(value);
+  //     emit(ChatGetAllUserChatsSuccessState());
+  //   }).catchError((error) {
+  //     print(error.toString());
+  //     emit(ChatGetAllUserChatsErrorState());
+  //   });
+  // }
 
   /// update image profile
   void updateProfile(BuildContext context) {
@@ -279,7 +313,7 @@ class ChatCubit extends Cubit<ChatStates> {
       name: name,
       bio: bio,
     )
-        .then((value) {
+        .then((_) {
       getUser();
       emit(ChatUpdateProfileSuccessState());
     }).catchError((error) {
@@ -289,30 +323,65 @@ class ChatCubit extends Cubit<ChatStates> {
   }
 
   /// get All Posts and likes and comments
-  void getAllPosts() {
-    posts = [];
-    likes = [];
-    comments = [];
-    emit(ChatGetPostsLoadingState());
-    databaseService.getPosts().then((postsValue) {
-      var postsNumber = postsValue.docs.length;
-      postsValue.docs.forEach((element) {
-        element.reference.collection('likes').get().then((likesValue) {
-          likes.add(likesValue.docs.length);
-          posts.add(Post.fromJson(element.data(), element.id));
-        }).then((value) {
-          element.reference.collection('comments').get().then((commentValue) {
-            comments.add(commentValue.docs.length);
-          }).then((value) {
-            if (comments.length == postsNumber) {
-              emit(ChatGetPostsSuccessState());
-            }
-          });
+  void getAllPosts() async {
+    if (userId == null || userId == '') {
+      String val = await CacheHelper.getData();
+      if (val == '') {
+        print('Will not get All Posts data because no user Id found');
+        return;
+      }
+    } else {
+      posts = [];
+      likes = [];
+      comments = [];
+      likesFutures = [];
+      commentsFutures = [];
+      emit(ChatGetPostsLoadingState());
+      databaseService.getPosts().then((postsValue) async {
+        var postsNumber = postsValue.docs.length;
+
+        postsValue.docs.forEach((element) {
+          posts.add(Post.fromJson(
+              element.data() as Map<String, dynamic>, element.id));
+
+          likesFutures.add(FirebaseFirestore.instance
+              .collection('posts')
+              .doc(element.id)
+              .collection('likes')
+              .get()
+              .then((value) => value.docs.length));
+
+          commentsFutures.add(FirebaseFirestore.instance
+              .collection('posts')
+              .doc(element.id)
+              .collection('comments')
+              .get()
+              .then((value) => value.docs.length));
         });
+
+        likes = await Future.wait(likesFutures);
+        comments = await Future.wait(commentsFutures);
+        if (comments.length == postsNumber) {
+          emit(ChatGetPostsSuccessState());
+        }
+        // element.reference.collection('likes').get().then((likesValue) {
+        //   likes.add(likesValue.docs.length);
+        //   posts.add(Post.fromJson(
+        //       element.data() as Map<String, dynamic>, element.id));
+        // }).then((value) {
+        //   element.reference.collection('comments').get().then((commentValue) {
+        //     comments.add(commentValue.docs.length);
+        //   }).then((_) {
+        //     if (comments.length == postsNumber) {
+        //       emit(ChatGetPostsSuccessState());
+        //     }
+        //   });
+        // });
+        // });
+      }).catchError((error) {
+        emit(ChatGetPostsErrorState());
       });
-    }).catchError((error) {
-      emit(ChatGetPostsErrorState());
-    });
+    }
   }
 
   /// add post
@@ -327,10 +396,12 @@ class ChatCubit extends Cubit<ChatStates> {
         context: context,
         postImage: postImage,
         postContent: postContent,
+        userFireBase: userFireBase!,
       )
-          .then((value) {
+          .then((_) {
         emit(ChatNewPostSuccessState());
         postImage = null;
+        getAllPosts();
       }).catchError((error) {
         print(error.toString());
         emit(ChatNewPostErrorState());
@@ -351,7 +422,7 @@ class ChatCubit extends Cubit<ChatStates> {
         userUid: userFireBase!.uid!,
         commentText: commentContent,
       )
-          .then((value) {
+          .then((_) {
         emit(ChatNewCommentSuccessState());
       }).catchError((error) {
         print(error.toString());
@@ -364,11 +435,11 @@ class ChatCubit extends Cubit<ChatStates> {
   void doLike(String postUid) {
     databaseService
         .likePost(postUid: postUid, userUid: userFireBase!.uid!)
-        .then((value) {
+        .then((_) {
       emit(ChatLikePostSuccessState());
     }).catchError((error) {
-      emit(ChatLikePostErrorState());
       print(error.toString());
+      emit(ChatLikePostErrorState());
     });
   }
 
@@ -378,13 +449,6 @@ class ChatCubit extends Cubit<ChatStates> {
   /// change number for pages
   void changeIndex(int index) {
     selectedPageIndex = index;
-    if (index == 1) {
-      if (users.isEmpty) {
-        getAllUsers();
-      } else
-        print('users list is available');
-    }
-
     emit(ChatChangeBottomNavBarState());
   }
 
@@ -432,28 +496,28 @@ class ChatCubit extends Cubit<ChatStates> {
   }
 }
 
-class AppCubit extends Cubit<AppStates> {
-  AppCubit() : super(AppInitialState());
+// class AppCubit extends Cubit<AppStates> {
+//   AppCubit() : super(AppInitialState());
 
-  /// get object from cubit class
-  static AppCubit get(context) => BlocProvider.of<AppCubit>(context);
+//   /// get object from cubit class
+//   static AppCubit get(context) => BlocProvider.of<AppCubit>(context);
 
-  bool isDark = false;
+//   bool isDark = false;
 
-  /// change theme mode
-  void changeAppMode() {
-    // isDark = !isDark;
-    // CacheHelper.saveData(
-    //   key: kIsDark,
-    //   value: isDark,
-    // ).then((value) => emit(AppChangeModeState()));
-  }
+//   /// change theme mode
+//   void changeAppMode() {
+//     isDark = !isDark;
+//     CacheHelper.saveData(
+//       key: kIsDark,
+//       value: isDark,
+//     ).then((value) => emit(AppChangeModeState()));
+//   }
 
-  /// get theme mode
-  void getAppMode() {
-    // CacheHelper.getData(key: kIsDark).then((value) {
-    //   isDark = value;
-    //   emit(AppChangeModeState());
-    // });
-  }
-}
+//   /// get theme mode
+//   void getAppMode() {
+//     CacheHelper.getData(key: kIsDark).then((value) {
+//       isDark = value;
+//       emit(AppChangeModeState());
+//     });
+//   }
+// }

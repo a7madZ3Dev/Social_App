@@ -19,21 +19,28 @@ class DatabaseService {
   final CollectionReference postCollection =
       FirebaseFirestore.instance.collection('posts');
 
-  /// posts collection reference
-  final CollectionReference commentCollection =
-      FirebaseFirestore.instance.collection('comments');
+  /// images reference
+  final Reference imageReference = FirebaseStorage.instance.ref();
 
   /// get user data
   Future<DocumentSnapshot> getUserData() async {
-    return await userCollection.doc(userId).get();
+    return userCollection.doc(userId).get();
   }
 
   /// get all users data
   Future<QuerySnapshot> getAllUsersData() async {
-    return await userCollection.get();
+    return userCollection.get();
   }
 
-  /// store new user data in fire base storage and fire base cloude
+  // /// get all users data
+  // Future<QuerySnapshot> getAllUserChatsData() async {
+  //   return userCollection.doc(userId).collection('chats').get();
+  // }
+
+  /// Send the message at the same time to both parties
+  List<Future<void>> chatsFutures = [];
+
+  /// store new user data in fire base storage and fire base cloud
   Future<void> updateData({
     BuildContext? context,
     File? image,
@@ -42,25 +49,23 @@ class DatabaseService {
     String? bio,
     String? phone,
   }) async {
-    String? urlImage;
+    String? urlProfile;
     String? urlCover;
     UserFireBase userFireBase = ChatCubit.get(context).userFireBase!;
 
     if (image != null) {
-      await FirebaseStorage.instance
-          .ref()
+      await imageReference
           .child('users/${Uri.file(image.path).pathSegments.last}')
           .putFile(image)
           .then((value) async {
-        urlImage = await value.ref.getDownloadURL();
+        urlProfile = await value.ref.getDownloadURL();
       }).catchError((error) {
         print(error.toString());
       });
     }
 
     if (cover != null) {
-      await FirebaseStorage.instance
-          .ref()
+      await imageReference
           .child('users/${Uri.file(cover.path).pathSegments.last}')
           .putFile(cover)
           .then((value) async {
@@ -71,7 +76,7 @@ class DatabaseService {
     }
 
     await userCollection.doc(userId).update({
-      'image': urlImage ?? userFireBase.image,
+      'image': urlProfile ?? userFireBase.image,
       'cover': urlCover ?? userFireBase.cover,
       'phone': phone ?? userFireBase.phone,
       'name': name ?? userFireBase.name,
@@ -81,17 +86,17 @@ class DatabaseService {
 
   /// get posts data
   Future<QuerySnapshot> getPosts() async {
-    return await postCollection.orderBy('dateTime', descending: true).get();
+    return postCollection.orderBy('dateTime', descending: false).get();
   }
 
   /// create new post
   Future<void> createPost({
+    required UserFireBase userFireBase,
     BuildContext? context,
     File? postImage,
     String? postContent,
   }) async {
     String? urlImage;
-    UserFireBase userFireBase = ChatCubit.get(context).userFireBase!;
 
     if (postImage != null) {
       await FirebaseStorage.instance
@@ -106,7 +111,7 @@ class DatabaseService {
     }
 
     Post post = Post(
-      image: userFireBase.image,
+      userImage: userFireBase.image,
       name: userFireBase.name,
       uid: userFireBase.uid,
       postImage: urlImage ?? '',
@@ -120,7 +125,7 @@ class DatabaseService {
     // (value) => postCollection.doc(value.id).update({'postId': value.id}),);
   }
 
-  /// do like to the post
+  /// do Comment to the post
   Future<void> createComment(
       {required String postUid,
       required String userUid,
@@ -157,29 +162,47 @@ class DatabaseService {
       text: text,
     );
 
-    /// add the message in his chat (Reciver User)
-    await userCollection
-        .doc(receiverUid.trim())
-        .collection('chats')
-        .doc(userId!.trim())
-        .collection('messages')
-        .add(message.toMap());
+    chatsFutures.addAll(
+      [
+        userCollection
+            .doc(receiverUid.trim())
+            .collection('chats')
+            .doc(userId!.trim())
+            .collection('messages')
+            .add(message.toMap()),
+        userCollection
+            .doc(userId!.trim())
+            .collection('chats')
+            .doc(receiverUid.trim())
+            .collection('messages')
+            .add(message.toMap())
+      ],
+    );
 
-    /// add the message in my chat (Sender User)
-    await userCollection
-        .doc(userId!.trim())
-        .collection('chats')
-        .doc(receiverUid.trim())
-        .collection('messages')
-        .add(message.toMap());
+    await Future.wait(chatsFutures);
 
+    // /// add the message in his chat (Receiver User)
+    // await userCollection
+    //     .doc(receiverUid.trim())
+    //     .collection('chats')
+    //     .doc(userId!.trim())
+    //     .collection('messages')
+    //     .add(message.toMap());
+
+    // /// add the message in my chat (Sender User)
+    // await userCollection
+    //     .doc(userId!.trim())
+    //     .collection('chats')
+    //     .doc(receiverUid.trim())
+    //     .collection('messages')
+    //     .add(message.toMap());
   }
 
-  /// map shanshote to list of messages
+  /// map snapshots to list of messages
   List<Message> _messagesListFromSnapshot(QuerySnapshot snapshot) {
-    return snapshot.docs.map((doc) {
-      Map<String, dynamic> data = doc.data();
-      return Message.fromJson(data);
+    return snapshot.docs.map<Message>((doc) {
+      Object? data = doc.data();
+      return Message.fromJson(data as Map<String, dynamic>);
     }).toList();
   }
 

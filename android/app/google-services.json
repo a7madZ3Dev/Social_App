@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "805179934879",
+    "project_id": "udemy-chat-eaa5b",
+    "storage_bucket": "udemy-chat-eaa5b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805179934879:android:ee65c1dc252a97762e3aaa",
+        "android_client_info": {
+          "package_name": "com.example.chat_apps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "805179934879-cnlh28rem21miqchs6u290q17u5diak1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.chat_apps",
+            "certificate_hash": "126f8b612ada26c4ba21c97c080ce7ed80c9600f"
+          }
+        },
+        {
+          "client_id": "805179934879-rhahk34sqdv3vq3fcirshddjno7hufd7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCe9aIX6X8-af_8BSL-Z3sYR3zsjOjoLZ8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "805179934879-rhahk34sqdv3vq3fcirshddjno7hufd7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

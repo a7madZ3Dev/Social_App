@@ -12,6 +12,7 @@ class GetImage {
 
     if (pickedImageFile == null) {
       print('No image Picked');
+      return null;
     } else
       return File(pickedImageFile.path);
   }

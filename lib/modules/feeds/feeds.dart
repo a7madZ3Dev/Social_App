@@ -1,11 +1,12 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:conditional_builder/conditional_builder.dart';
+import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 
 import '../../shared/cubit/cubit.dart';
 import '../../../models/post/post.dart';
 import '../../shared/cubit/states.dart';
+import '../../shared/components/constants.dart';
 import '../../shared/components/components.dart';
 import '../../shared/styles/styles/icon_broken.dart';
 
@@ -39,10 +40,16 @@ class FeedsScreen extends StatelessWidget {
                       alignment: Alignment.center,
                       children: [
                         Image.network(
-                          'https://image.freepik.com/free-photo/satisfied-charming-woman-social-media-blogger-with-stylish-hairstyle-holds-smartphone-reads-article-internet_273609-42941.jpg',
+                          kHeader,
                           fit: BoxFit.cover,
                           height: 220.0,
                           width: double.infinity,
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return Container(
+                              height: 220.0,
+                            );
+                          },
                         ),
                         Text(
                           'Communicate with friends',
@@ -98,7 +105,7 @@ Widget buildPostItem(BuildContext context, Post post, int index,
                 child: CircleAvatar(
                   radius: 28.0,
                   backgroundImage: NetworkImage(
-                    post.image!,
+                    post.userImage!,
                   ),
                 ),
               ),
@@ -189,6 +196,12 @@ Widget buildPostItem(BuildContext context, Post post, int index,
                   fit: BoxFit.cover,
                   height: 200.0,
                   width: double.infinity,
+                  errorBuilder: (BuildContext context, Object exception,
+                      StackTrace? stackTrace) {
+                    return Container(
+                      height: 200.0,
+                    );
+                  },
                 ),
               ),
             ),
@@ -228,7 +241,7 @@ Widget buildPostItem(BuildContext context, Post post, int index,
                     ),
                     Text(
                       // '50 comments',
-                      '${chatCubit.comments[index]}  comments' ,
+                      '${chatCubit.comments[index]}  comments',
                       style: Theme.of(context).textTheme.caption,
                     ),
                   ],

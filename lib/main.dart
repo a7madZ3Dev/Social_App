@@ -1,5 +1,4 @@
 // @dart=2.9
-import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -24,7 +23,7 @@ void main() async {
     print(token);
   }
 
-  /// the app in foreground
+  /// when the app in foreground
   FirebaseMessaging.onMessage.listen((RemoteMessage event) {
     print('on message');
     print(event.data.toString());
@@ -44,13 +43,13 @@ void main() async {
     );
   });
 
-  /// the app in background
+  /// when the app run in background
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   runApp(MyApp(userId));
 }
 
-/// handle the operation in back  ground
+/// handle the operation in background
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('on background message');
   print(message.data.toString());
@@ -67,12 +66,15 @@ class MyApp extends StatelessWidget {
   /// This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthCubit>(create: (BuildContext context) => AuthCubit()),
-        BlocProvider<ChatCubit>(create: (BuildContext context) => ChatCubit()..getUser()..getAllPosts()),
-        BlocProvider<AppCubit>(create: (BuildContext context) => AppCubit()),
+        BlocProvider<ChatCubit>(
+          create: (BuildContext context) => ChatCubit()
+            ..getUser()
+            ..getAllPosts()
+            ..getAllUsers(),
+        ),
       ],
       child: MaterialApp(
         title: 'Social App',
