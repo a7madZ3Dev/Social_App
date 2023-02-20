@@ -130,7 +130,7 @@ class DatabaseService {
       {required String postUid,
       required String userUid,
       required String commentText}) async {
-    await postCollection.doc(postUid).collection('comments').doc(userUid).set({
+    await postCollection.doc(postUid).collection('comments').add({
       'postId': postUid,
       'userUid': userUid,
       'text': commentText,
