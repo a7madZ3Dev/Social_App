@@ -16,7 +16,7 @@ A simple application for learning to deal with Firebase. Depending on Bloc (Cubi
 ## 📱 Screen Shots 
 <img alt="jpg" src="preview/view_1.jpg" width= "300" /> <img alt="jpg" src="preview/view_2.jpg" width= "300" />
 
-<img alt="jpg" src="preview/view_3.jpg" width= "300" /> <img alt="jpg" src="preview/view_3.jpg" width= "300" />
+<img alt="jpg" src="preview/view_3.jpg" width= "300" /> <img alt="jpg" src="preview/view_4.jpg" width= "300" />
 
 <img alt="jpg" src="preview/view_5.jpg" width= "300" />
 
